@@ -1,0 +1,51 @@
+<?php
+
+function mymodule1_permission(){
+  return array(
+    'access mypage' => array(
+     'title' => t('Access my page'),
+     'description' => t('check out my site'),
+      ),
+    );
+}
+
+ function mymodule1_menu() {
+    $items['mypage'] = array(
+      'title'  =>'MY page',
+      'page callback' => 'mymodule1_mypage',
+      'type' => MENU_NORMAL_ITEM,
+      'access arguments'=> array('access mypage'),
+    );
+    return $items;
+  }
+ function mymodule1_mypage(){
+  return "this is a test";
+ }
+
+
+  
+function mymodule1_block_info() {
+  // This example comes from node.module.
+  $blocks['mymodule1'] = array(
+    'info' => t('My Custom moduleblock'),
+    );
+  
+  return $blocks;
+}
+  
+
+function mymodule1_block_view($delta = '') {
+  // This example is adapted from node.module.
+  $block = array();
+
+  switch ($delta) {
+    case 'mymodule1':
+      $block['subject'] = t('custom block');
+      $block['content'] = '<strong>Hello</strong> this is my custom block';
+        
+      break;
+}
+    
+  return $block;
+}
+

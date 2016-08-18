@@ -1,0 +1,133 @@
+<?php
+	
+  function myview_menu() {
+	$items = array();
+
+	$items['view/myview'] = array(
+		'title' => 'find a doctor',
+		'description' => 'to create doctor page.',
+		'page callback' => 'myview',
+		'access callback' => TRUE
+	);
+
+	return $items;
+}
+
+ /*function mymodule_abc() {
+	 return 'this is myview';
+	}*/
+
+	/*function myview_menu(){
+		$items = array();
+
+	$items['view/myview'] = array(
+		'title' => 'find a doctor',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('mydropdown'),
+		'access callback' => TRUE
+	);
+ return $items;
+}
+
+	//get the list of locations from taxonomy to use in the dropdown
+		function mydropdown($form, &$form_state){
+
+
+$dropdown_source = db_select('taxonomy_term_data','t')
+										->condition('t.tid',0,'<>')
+										->fields('t',array('tid','name'))
+										->execute();
+										
+	 // $result =  $dropdown_source-> fetchAll();
+
+			 
+// dpm($dropdown_source->fetchAll());
+$result = $dropdown_source->fetchAll();
+
+foreach ($result as $key => $value) {
+ // dpm($value);
+	$id =$value->tid;
+ // dpm($id);
+	$names = $value->name;
+ // dpm($names);
+	$dropdown_array[$id] = $names;
+}
+
+//location filter dropdown
+// dpm($dropdown_array);
+$form['filterset'] = array(
+		'#weight' => '1',
+		'#type' => 'select',
+		'#options' => $dropdown_array,
+		'#title' => 'Filter by speciality',
+);
+
+$drophospitals = db_select('node','n')
+								->condition('n.type','hospital_page','=')
+								->fields('n',array('title'))
+								->execute();
+
+$result1 =$drophospitals->fetchAll();
+foreach ($result1 as $key => $value1) {
+	$namehos = $value1->title;
+	$dropdown_arrayhos[] = $namehos;
+
+}
+
+$form['filterhos'] = array(
+		'#weight' => '2',
+		'#type' => 'select',
+		'#options' => $dropdown_arrayhos,
+		'#title' => 'Filter by hospitals',
+	);
+ 
+ // unset($dropdown_array);
+return $form;
+}
+*/
+
+function myview(){
+
+$query = new EntityFieldQuery();
+
+$query->entityCondition('entity_type', 'node')
+			->entityCondition('bundle', 'doctor')
+			->fieldCondition('field_speciality', 'tid',0,'<>');
+			
+		
+	
+$result2 = $query->execute();
+// dpm($result2['node']);
+foreach ($result2['node'] as $key => $value2) {
+$nid = $value2->nid;
+$doc = node_load($nid);
+$field_value = field_get_items('node', $doc, 'field_speciality')[0]['tid'];
+$field_value1= field_get_items('node', $doc, 'field_hospitals')[0]['target_id'];
+	// dpm($doc->title);
+$docname = $doc->title;
+$spec = taxonomy_term_load($field_value);
+$hosp = node_load($field_value1);
+
+		//dpm($spec->name);
+	//	dpm($hosp->title);
+$speclname = $spec->name;
+$hospname = $hosp->title;
+
+ $output =  array(
+    'doctor' => $docname,
+    'speciality' => $speclname,
+    'hospital' => $hospname,
+    );
+}
+
+
+
+
+	
+	
+	return $output ;
+
+
+}
+echo "$output";
+ 

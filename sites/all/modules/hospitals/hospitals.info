@@ -1,0 +1,3 @@
+name = myview
+description = use it to create hopspital network
+core = 7.x

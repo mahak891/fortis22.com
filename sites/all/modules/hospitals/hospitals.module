@@ -1,0 +1,23 @@
+<?php
+	
+  function hospitals_menu() {
+	$items = array();
+
+	$items['view/myview'] = array(
+		'title' => 'hospital network',
+		'description' => 'to create hospitals.',
+		'page callback' => 'myview',
+		'access callback' => TRUE
+	);
+
+	return $items;
+}
+
+function hospitals(){
+
+$query = new EntityFieldQuery();
+
+$query->entityCondition('entity_type', 'node')
+	  ->entityCondition('bundle', 'hospital_page')
+
+$result2 = $query->execute();

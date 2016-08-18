@@ -1,0 +1,4 @@
+name = mymodule1
+description = my first module to do the changes.
+core = 7.x
+
