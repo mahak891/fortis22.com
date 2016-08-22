@@ -1,3 +1,4 @@
 name = myview
 description = use it to create hopspital network
 core = 7.x
+files[] = views/handlers/views_handler_field_node_link_custom_stuff.inc

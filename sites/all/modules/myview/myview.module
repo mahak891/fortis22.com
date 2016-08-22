@@ -1,47 +1,27 @@
 <?php
-	
-  function myview_menu() {
+	//Implementation of hook menu
+function myview_menu() {
 	$items = array();
 
 	$items['view/myview'] = array(
 		'title' => 'find a doctor',
 		'description' => 'to create doctor page.',
-		'page callback' => 'myview',
+		'page callback' => 'myviewpage',
 		'access callback' => TRUE
 	);
 
 	return $items;
 }
 
- /*function mymodule_abc() {
-	 return 'this is myview';
-	}*/
+//FORM DROPDOWN LIST 
 
-	/*function myview_menu(){
-		$items = array();
-
-	$items['view/myview'] = array(
-		'title' => 'find a doctor',
-		'page callback' => 'drupal_get_form',
-		'page arguments' => array('mydropdown'),
-		'access callback' => TRUE
-	);
- return $items;
-}
-
-	//get the list of locations from taxonomy to use in the dropdown
-		function mydropdown($form, &$form_state){
+function mydropdown ($form, &$form_state){
 
 
 $dropdown_source = db_select('taxonomy_term_data','t')
 										->condition('t.tid',0,'<>')
 										->fields('t',array('tid','name'))
 										->execute();
-										
-	 // $result =  $dropdown_source-> fetchAll();
-
-			 
-// dpm($dropdown_source->fetchAll());
 $result = $dropdown_source->fetchAll();
 
 foreach ($result as $key => $value) {
@@ -53,14 +33,13 @@ foreach ($result as $key => $value) {
 	$dropdown_array[$id] = $names;
 }
 
-//location filter dropdown
-// dpm($dropdown_array);
-$form['filterset'] = array(
+
+$form['filterspec'] = array(
 		'#weight' => '1',
 		'#type' => 'select',
 		'#options' => $dropdown_array,
-		'#title' => 'Filter by speciality',
-);
+		'#default_value' => '0',
+		'#title' => 'Filter by speciality',);
 
 $drophospitals = db_select('node','n')
 								->condition('n.type','hospital_page','=')
@@ -78,56 +57,85 @@ $form['filterhos'] = array(
 		'#weight' => '2',
 		'#type' => 'select',
 		'#options' => $dropdown_arrayhos,
+		'#default_value' => 0,
 		'#title' => 'Filter by hospitals',
 	);
  
- // unset($dropdown_array);
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+    '#weight' => '3',
+  );
 return $form;
 }
-*/
 
-function myview(){
+function mydropdown_submit($form, &$form_state){
+	$speciality_value = $form_state['values']['filterspec'];
+	$hospital_value = $form_state['values']['filterhos'];
+	drupal_goto('view/myview', array('query'=>array('specality_id' => $speciality_value, 'hospital_id'  => $hospital_value,)
+	));
+
+// $form_state['rebuild'] = TRUE;
+
+}
+
+// VIEW FOR DOCTOR FIELDS
+
+function myview() {
+$query_params = drupal_get_query_parameters();
+
+$speciality_condition = $query_params['specality_id'];
+
+$hospital_condition = $query_params['hospital_id'];
+
 
 $query = new EntityFieldQuery();
+// $form_value = drupal_get_form('mydropdown');
+// dpm($form_value);
 
+// $specl1 = $form_value['filterspec']['#value'];
+// $hosp1  =$form_value['filterhos']['#value'];
 $query->entityCondition('entity_type', 'node')
-			->entityCondition('bundle', 'doctor')
-			->fieldCondition('field_speciality', 'tid',0,'<>');
-			
-		
+			->entityCondition('bundle', 'doctor');
+			if(!empty($speciality_condition)){
+				$query->fieldCondition('field_speciality', 'tid',$speciality_condition);
+			}
+			if(!empty($hospital_condition)){
+				$query->fieldCondition('field_hospitals','value',$hospital_condition);
+			}
 	
 $result2 = $query->execute();
-// dpm($result2['node']);
+
+$header = array(t('Doctor name'), t('Speciality Name'), t('Hospital'));
+$rows = array();
 foreach ($result2['node'] as $key => $value2) {
-$nid = $value2->nid;
-$doc = node_load($nid);
-$field_value = field_get_items('node', $doc, 'field_speciality')[0]['tid'];
-$field_value1= field_get_items('node', $doc, 'field_hospitals')[0]['target_id'];
-	// dpm($doc->title);
-$docname = $doc->title;
-$spec = taxonomy_term_load($field_value);
-$hosp = node_load($field_value1);
+  $nid = $value2->nid;
+  $doc = node_load($nid);
+  $field_value = field_get_items('node', $doc, 'field_speciality')[0]['tid'];
+  $field_value1= field_get_items('node', $doc, 'field_hospitals')[0]['target_id'];
+    // dpm($doc->title);
+  $docname = $doc->title;
+  $spec = taxonomy_term_load($field_value);
+  $hosp = node_load($field_value1);
 
-		//dpm($spec->name);
-	//	dpm($hosp->title);
-$speclname = $spec->name;
-$hospname = $hosp->title;
-
- $output =  array(
-    'doctor' => $docname,
-    'speciality' => $speclname,
-    'hospital' => $hospname,
-    );
+      //dpm($spec->name);
+    //  dpm($hosp->title);
+  $speclname = $spec->name;
+  $hospname = $hosp->title;
+  $subrow = array();
+  $subrow[] = $docname;
+  $subrow[] = $speclname;
+  $subrow[] = $hospname;
+  $rows[] = $subrow;
 }
 
-
-
-
-	
-	
-	return $output ;
-
+	 return theme('table', array('header' => $header, 'rows' => $rows)); 
 
 }
-echo "$output";
- 
+
+function myviewpage(){
+	$filter_form = drupal_get_form('mydropdown');
+	$output = render($filter_form);
+	$output .= myview();
+	return $output;
+}

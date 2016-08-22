@@ -3,21 +3,79 @@
   function hospitals_menu() {
 	$items = array();
 
-	$items['view/myview'] = array(
+	$items['hospital/hospital_network'] = array(
 		'title' => 'hospital network',
 		'description' => 'to create hospitals.',
-		'page callback' => 'myview',
+		'page callback' => 'hospitals',
 		'access callback' => TRUE
+
 	);
+
+    $items['doc/doctors_associated'] = array(
+    	'title' => 'Doctors Associated',
+		'description' => 'to create doc.',
+		'page callback' => 'viewdoctors',
+		'access callback' => TRUE,
+		'file'           => 'contextualdoctors.inc'
+    	);
 
 	return $items;
 }
 
 function hospitals(){
 
-$query = new EntityFieldQuery();
+$query2 = new EntityFieldQuery();
 
-$query->entityCondition('entity_type', 'node')
+$query2->entityCondition('entity_type', 'node')
 	  ->entityCondition('bundle', 'hospital_page')
+	  ->propertyOrderBy('nid' , 'DESC')
+      ->propertyCondition('status', 1)
+      ->range(0,5);
+$result3 = $query2->execute();
+// dpm($result3);
 
-$result2 = $query->execute();
+ $nodes = array();
+    if (isset($result3['node'])) {
+      $nids = array_keys($result3['node']);
+      $nodes = node_load_multiple($nids);
+    }
+//dpm($nodes);
+          
+$list = array(); 
+    foreach ($nodes as $node) {
+
+      $id = $node->nid;
+	  $variables['name'][] = $node->title;
+	//  dpm($node->title);
+      $options = array('absolute' => TRUE);
+      $url = url('node/' . $node->nid, $options);
+
+
+      $url1 = url('doc/' .'doctors_associated',$options);
+
+
+     /*
+       $list[] ='<a href=' . $url . '>' . $node->title . '</a>';
+       $list[] ='<a href=' . $url1 . '>' . 'VIEW:DOCTORS' . '</a>';
+     $list1 = array();
+      $list1 = $list;
+    }
+
+    $theme_args = array('items' => $list1, 'type' => 'ul');
+    $content = theme('item_list', $theme_args);*/
+	}
+    $content = theme('hosp', $variables);
+
+    return $content;
+}
+ function hospitals_theme() {
+
+    return array(
+      'hosp' => array(
+        'template' => 'hosp_theme',
+        'arguments' => array(
+          'variables' => NULL,
+        ),
+      ),
+    );
+  }
